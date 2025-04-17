@@ -11,21 +11,45 @@ Lab #           = 10
 
 #include "doublestr.hpp"
 
-/*
-void load_numbers(std::ifstream& file){
+std::vector<DoubleStr> load_numbers(std::ifstream& file){   // Reads double numbers from a file and returns a vector of DoubleStr instances.
+    std::vector<DoubleStr> numbers;
     std::string raw_line, proc_line;
     
-    while (std::getline(file, raw_line)){
-        for (size_t i = 0; i < raw_line.size(); i++) {
-            if (wspc.find(raw_line[i]) == wspc.end()) {
-                proc_line += raw_line[i];
+    while (std::getline(file, raw_line)){   // Reads file line-by-line.
+        for (size_t i = 0; i < raw_line.size(); i++){
+            if (wspc.find(raw_line[i]) == wspc.end()){   
+                proc_line += raw_line[i];   // Only appends non-whitespace characters of raw_line to proc_line.
             }
         }
-        this->numbers.push_back(proc_line);
+        
+        numbers.push_back(DoubleStr(proc_line));    // Pushes the DoubleStr version of proc_line into the vector.
+        proc_line.clear();
     }
+    return numbers;     // Returns a vector containing all numbers read from the file, in DoubleStr format.
+}
+
+void test_DoubleStr(std::vector<DoubleStr>& numbers, const std::string& const_num_str){
+    DoubleStr const_num(const_num_str);
+    DoubleStr add_result;
+    
+    if (!const_num.is_valid){   // Only allow valid constant numbers to add to every line number.
+        std::cerr << "Error in 'test_DoubleStr()': Invalid 'const_num_str' input string.\n";
+        return;
+    }
+
+    std::cout << "\n=============== TESTING DOUBLESTR CLASS ===============\n";
+    for (size_t i = 0; i < numbers.size(); i++){
+        if (!numbers[i].is_valid){
+            std::cout << "ATTENTION: Number at line [" << i << "] is not a valid double.\n";
+        } else {
+            add_result = numbers[i] + const_num;
+            std::cout << "Line [" << i << "]: (" << numbers[i].double_str << ") + (" << const_num.double_str << ") = " << add_result.double_str << "\n";
+        }
+    }
+    std::cout << "=============== TEST ENDED SUCCESSFULLY ===============\n\n";
     return;
 }
-*/
+
 int main(int argc, char** argv){
     std::ifstream file;
     if (argc > 1){  // If a filepath is specified (argv[1]).
@@ -42,10 +66,9 @@ int main(int argc, char** argv){
         }
     }
 
-    DoubleStr db1("+00000070.124315313");
-    DoubleStr db2("-00000046.124315313");
-    DoubleStr addRes = db1 + db2;
-    std::cout << "Addition result = '" << addRes.double_str << "'\n";
+    const std::string const_num = "-123.456";
+    std::vector<DoubleStr> numbers = load_numbers(file);
+    test_DoubleStr(numbers, const_num);
 
     file.close();
     return 0;

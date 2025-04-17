@@ -9,11 +9,11 @@ Lab #           = 10
 -------------------------------------------------------------------------------------
 */
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <set>
+#include <iostream> // Basic C++ I/O handling.
+#include <fstream>  // Implements file streams.
+#include <string>   // Implements std::string.
+#include <vector>   // Implements std::vector.
+#include <set>      // Implements std::set.
 
 #ifndef __DOUBLESTR_HPP__
 #define __DOUBLESTR_HPP__
@@ -32,22 +32,28 @@ class DoubleStr {
 
         DoubleStr(std::string double_str);
 
-        bool validate_number();
+        bool validate_number() const;
 
-        DoubleStr operator + (const DoubleStr& other) const;
-
-        DoubleStr operator - (std::string& odouble_str);
+        DoubleStr operator + (const DoubleStr& other);
 
     private:
         std::string add_unsigned_strings(std::string num1, std::string num2) const;
+
         std::string subtract_unsigned_strings(std::string num1, std::string num2) const;
+
         bool is_greater_or_equal_unsigned(std::string num1, std::string num2) const;
+
+        void normalize_decimal_length(std::string& dec1, std::string& dec2) const;
+
         std::string split_decimal_int(const std::string& num) const;
+
         std::string split_decimal_frac(const std::string& num) const;
-        std::string normalize_decimal_length(std::string dec1, std::string dec2, int& max_len) const;
+
         std::string remove_leading_zeros(std::string num) const;
-        int string_max(int a, int b) const;
-        bool all_zeros(const std::string& str) const;
+
+        std::string remove_trailing_zeros(const std::string& num) const;
+
+        bool all_zeros(const std::string& s) const;
 };
 
 #endif // __DOUBLESTR_HPP__

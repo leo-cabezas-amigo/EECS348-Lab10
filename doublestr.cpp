@@ -9,260 +9,242 @@ Lab #           = 10
 -------------------------------------------------------------------------------------
 */
 
-#include "doublestr.hpp"
+#include "doublestr.hpp" 
 
-const std::set<char> num_chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-const std::set<char> nz_num_chars = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
-const std::set<char> wspc = {' ', '\t', '\n', '\r', '\v', '\f'};
-const std::set<char> sign_chars = {'+', '-'};
+const std::set<char> num_chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};    // Valid digits.
+const std::set<char> nz_num_chars = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};      // Valid non-zero digits.
+const std::set<char> wspc = {' ', '\t', '\n', '\r', '\v', '\f'};                        // White space characters.
+const std::set<char> sign_chars = {'+', '-'};                                           // Sign characters.
 
-DoubleStr::DoubleStr(){
-    this->double_str = std::string();
-    this->is_valid = false;
+DoubleStr::DoubleStr(){    // Default constructor.
+    this->double_str = std::string();   // Initializes an empty string.
+    this->is_valid = false;             // Sets default validity to false.
     return;
 }
 
-DoubleStr::DoubleStr(std::string double_str){
-    this->double_str = double_str;
+DoubleStr::DoubleStr(std::string double_str){   // Parameterized constructor.
+    this->double_str = double_str;  // Set the input string as the number
     
-    if (this->validate_number()){
-        this->is_valid = true;
+    if (this->validate_number()) {
+        this->is_valid = true;  // Set to true if the number is valid.
     } else {
-        this->is_valid = false;
+        this->is_valid = false;  // Set to false if the number is invalid.
     }
     return;
 }
 
-bool DoubleStr::validate_number(){
+bool DoubleStr::validate_number() const {   // Determines if a string is a valid double type representation.
     if (this->double_str.length() == 0){
-        return false;
+        return false;  // Return false if string is empty.
     }
 
-    size_t dot_cnt = 0;
-    size_t num_before_dot = 0, num_after_dot = 0;
-    for (size_t i = 0; i < this->double_str.length(); i++){
-        if (sign_chars.find(this->double_str[i]) != sign_chars.end()){
-            if (i != 0){return false;}
-        } else if (this->double_str[i] == '.'){
-            dot_cnt++;
-        } else if (num_chars.find(this->double_str[i]) != num_chars.end()){
-            if (dot_cnt == 0){num_before_dot++;}
-            else {num_after_dot++;}
-        } else {
-            return false;
-        }
+    size_t dot_cnt = 0;         // Number of decimal point symbols ('.') present.
+    size_t num_before_dot = 0;  // Number of digits before the decimal point.
+    size_t num_after_dot = 0;   // Number of digits after the decimal point.
+
+    for (size_t i = 0; i < this->double_str.length(); i++) {
+        if (sign_chars.find(this->double_str[i]) != sign_chars.end()){  // If a sign character.
+            if (i != 0) { return false; }  // Sign character can only be placed at the start of the string.
+        } 
+        else if (this->double_str[i] == '.') {  // If a decimal point.
+            dot_cnt++;  // Increment decimal point counter.
+        } 
+        else if (num_chars.find(this->double_str[i]) != num_chars.end()){  // If a number character.
+            if (dot_cnt == 0) { num_before_dot++; }     // Increment num_before_dot if decimal dot not found yet.
+            else { num_after_dot++; }                   // Increment num_after_dot if decimal dot already found.
+        } else { return false; }  // If not a sign character, a dot, or a number, then an invalid character is present.
     }
 
-    bool CASE1 = (dot_cnt > 1);
-    bool CASE2 = (num_before_dot == 0);
-    bool CASE3 = (dot_cnt == 1) && (num_after_dot == 0);
+    bool CASE1 = (dot_cnt > 1);             // If more than one decimal point is present.
+    bool CASE2 = (num_before_dot == 0);     // If no digits before the decimal point.
+    bool CASE3 = (dot_cnt == 1) && (num_after_dot == 0);  // If a decimal point is present but there's no digits after it.
 
-    if (CASE1 || CASE2 || CASE3){
+    if (CASE1 || CASE2 || CASE3) {  // Return false if any of these cases are triggered.
         return false;
     } else {
-        return true;
+        return true;  // Else, the number is valid.
     }
 }
 
-DoubleStr DoubleStr::operator + (const DoubleStr& other) const {
+DoubleStr DoubleStr::operator + (const DoubleStr& other) {  // Implements addition for DoubleStr objects.
     DoubleStr result;
-    if (!is_valid || !other.is_valid) {
-        result.double_str = "Error: Invalid operands";
-        result.is_valid = false;
-        return result;
+    if (!this->is_valid || !other.is_valid) {  // Checks if the operand are valid.
+        std::cerr << "Error in 'DoubleStr::operator+()': Invalid operand(s).\n";
+        return DoubleStr();  // Return an empty DoubleStr object if either operand is invalid.
     }
 
-    bool neg1 = (double_str[0] == '-');
-    bool neg2 = (other.double_str[0] == '-');
-    std::string n1 = neg1 ? double_str.substr(1) : double_str;
-    std::string n2 = neg2 ? other.double_str.substr(1) : other.double_str;
+    bool neg1 = (this->double_str[0] == '-');  // Checks if the first number is negative.
+    bool neg2 = (other.double_str[0] == '-');  // Checks if the second number is negative.
 
-    if (!neg1 && !neg2) {
-        // Both numbers are positive: Add them.
+    // Gets the magnitudes of the numbers.
+    std::string n1 = (neg1 || (this->double_str[0] == '+')) ? this->double_str.substr(1) : this->double_str;
+    std::string n2 = (neg2 || (other.double_str[0] == '+')) ? other.double_str.substr(1) : other.double_str;
+
+    if ((!neg1) && (!neg2)){    // Case 1: Both numbers are positive.
         result.double_str = add_unsigned_strings(n1, n2);
-    } else if (neg1 && neg2) {
-        // Both numbers are negative: Add their magnitudes and add a negative sign.
+    } else if (neg1 && neg2){   // Case 2: Both numbers are negative.
         result.double_str = "-" + add_unsigned_strings(n1, n2);
-    } else if (neg1) { // -n1 + n2  => n2 - n1
-        // First number is negative, second is positive: Subtract magnitudes.
-        if (is_greater_or_equal_unsigned(n2, n1)) {
-            result.double_str = subtract_unsigned_strings(n2, n1);
-        } else {
+    } else if (neg1){           // Case 3: First number is negative, second is positive.
+        if (is_greater_or_equal_unsigned(n2, n1)){
+            result.double_str = subtract_unsigned_strings(n2, n1);  // Subtract n1 from n2 if n2 >= n1.
+        } else {        // Otherwise, subtract n2 from n1 and add the minus sign.
             result.double_str = "-" + subtract_unsigned_strings(n1, n2);
         }
-    } else {         // n1 + (-n2) => n1 - n2
-        // First number is positive, second is negative: Subtract magnitudes.
-        if (is_greater_or_equal_unsigned(n1, n2)) {
-            result.double_str = subtract_unsigned_strings(n1, n2);
-        } else {
+    } else {    // Case 4: First number is positive, second is negative.
+        if (is_greater_or_equal_unsigned(n1, n2)){
+            result.double_str = subtract_unsigned_strings(n1, n2);  // Subtract n2 from n1 if n1 >= n2.
+        } else {    // Otherwise, subtract n1 from n2 and add the minus sign.
             result.double_str = "-" + subtract_unsigned_strings(n2, n1);
         }
     }
-    result.is_valid = true;
+
+    result.is_valid = true;  // Set the result as valid.
     return result;
 }
 
-std::string DoubleStr::add_unsigned_strings(std::string num1, std::string num2) const {
+std::string DoubleStr::add_unsigned_strings(std::string num1, std::string num2) const { // Adds two string-formatted unsigned numbers.
+    // Split each number into integer and fractional parts.
     std::string int1 = split_decimal_int(num1);
-    std::string dec1 = split_decimal_frac(num1);
     std::string int2 = split_decimal_int(num2);
+    std::string dec1 = split_decimal_frac(num1);
     std::string dec2 = split_decimal_frac(num2);
 
+    // Normalize the lengths of the decimal parts to ensure proper addition.
+    normalize_decimal_length(dec1, dec2);
 
-    // 2. Normalize the decimal parts (pad with trailing zeros).
-    int max_len = 0;
-    std::string norm_dec1 = normalize_decimal_length(dec1, dec2, max_len);
-    std::string norm_dec2 = normalize_decimal_length(dec2, dec1, max_len);
-
-    // 3. Add the decimal parts, handling carry.
-    std::string sum_dec = "";
+    // Add fractional parts, handling carry.
+    std::string result_dec = "";
     int carry = 0;
-    for (int i = max_len - 1; i >= 0; --i) {
-        int d1 = (i < norm_dec1.length()) ? (norm_dec1[i] - '0') : 0;
-        int d2 = (i < norm_dec2.length()) ? (norm_dec2[i] - '0') : 0;
-        int sum = d1 + d2 + carry;
-        sum_dec = std::to_string(sum % 10) + sum_dec; // Prepend the digit
-        carry = sum / 10;
+    for (int i = dec1.length() - 1; i >= 0; i--) {
+        int sum = (dec1[i] - '0') + (dec2[i] - '0') + carry;    // Add corresponding digits with carry.
+        result_dec = char((sum % 10) + '0') + result_dec;       // Append result digit to result_dec.
+        carry = sum / 10;  // Update carry for next iteration.
     }
 
-    // 4. Add the integer parts, handling carry.
-    std::string sum_int = "";
+    // Add integer parts, handling carry.
+    std::string result_int = "";
     int i = int1.length() - 1;
     int j = int2.length() - 1;
-    while (i >= 0 || j >= 0 || carry) {
-        int d1 = (i >= 0) ? (int1[i--] - '0') : 0;
-        int d2 = (j >= 0) ? (int2[j--] - '0') : 0;
-        int sum = d1 + d2 + carry;
-        sum_int = std::to_string(sum % 10) + sum_int; // Prepend the digit
-        carry = sum / 10;
+    while (i >= 0 || j >= 0 || carry) {             // Adds integer parts while handling carry.
+        int d1 = (i >= 0) ? int1[i--] - '0' : 0;    // Gets digit from first number, or 0 if out of range.
+        int d2 = (j >= 0) ? int2[j--] - '0' : 0;    // Gets digit from second number, or 0 if out of range.
+        int sum = d1 + d2 + carry;                  // Adds digits and carry.
+        
+        result_int = char((sum % 10) + '0') + result_int;   // Append result digit to result_int.
+        carry = sum / 10;   // Update carry for next iteration.
     }
 
-    // 5. Combine the integer and decimal parts.
-    std::string result = sum_int;
-    if (!sum_dec.empty() && !all_zeros(sum_dec)) {
-        result += "." + sum_dec;
-    }
-    return result;
+    result_int = remove_leading_zeros(result_int);      // Removes leading zeros from integer part.
+    result_dec = remove_trailing_zeros(result_dec);     // Removes trailing zeros from fractional part.
+
+    if (!result_dec.empty())                    // If there is a fractional part,
+        return result_int + "." + result_dec;   // returns integer and fractional parts combined.
+
+    return result_int + ".0";  // If no fractional part, return the integer part + ".0".
 }
 
-std::string DoubleStr::subtract_unsigned_strings(std::string num1, std::string num2) const {
-    // 1. Split the numbers into integer and decimal parts.
-    std::string int1 = split_decimal_int(num1);
-    std::string dec1 = split_decimal_frac(num1);
-    std::string int2 = split_decimal_int(num2);
-    std::string dec2 = split_decimal_frac(num2);
+std::string DoubleStr::subtract_unsigned_strings(std::string n1, std::string n2) const {    // Subtracts two string-formatted unsigned numbers.
+    // Splits each number into integer and fractional parts.
+    std::string int1 = split_decimal_int(n1);
+    std::string int2 = split_decimal_int(n2);
+    std::string dec1 = split_decimal_frac(n1);
+    std::string dec2 = split_decimal_frac(n2);
 
-    // 2. Normalize the decimal parts.
-    int max_len = 0;
-    std::string norm_dec1 = normalize_decimal_length(dec1, dec2, max_len);
-    std::string norm_dec2 = normalize_decimal_length(dec2, dec1, max_len);
+    // Normalizes the lengths of the decimal parts to ensure proper subtraction.
+    normalize_decimal_length(dec1, dec2);
 
-    // 3. Subtract the decimal parts, handling borrow.
-    std::string diff_dec = "";
+    // Subtracts fractional parts, handling borrow.
+    std::string result_dec = "";
     int borrow = 0;
-    for (int i = max_len - 1; i >= 0; --i) {
-        int d1 = (i < norm_dec1.length()) ? (norm_dec1[i] - '0') : 0;
-        int d2 = (i < norm_dec2.length()) ? (norm_dec2[i] - '0') : 0;
-        int diff = d1 - d2 - borrow;
-        if (diff < 0) {
-            diff += 10;
+    for (int i = dec1.size() - 1; i >= 0; i--) {
+        int d1 = dec1[i] - '0' - borrow;    // Subtracts with borrow from previous iteration.
+        int d2 = dec2[i] - '0';             // Gets digit from second number.
+        
+        if (d1 < d2) {  // If the first digit is smaller, borrows from the next place.
+            d1 += 10;
             borrow = 1;
         } else {
             borrow = 0;
         }
-        diff_dec = std::to_string(diff) + diff_dec; // Prepend the digit
+        result_dec = char((d1 - d2) + '0') + result_dec;  // Appends result digit to result_dec.
     }
 
-    // 4. Subtract the integer parts, handling borrow.
-    std::string diff_int = "";
+    std::string result_int = "";
     int i = int1.length() - 1;
     int j = int2.length() - 1;
-    while (i >= 0 || j >= 0 || borrow) {
-        int d1 = (i >= 0) ? (int1[i--] - '0') : 0;
-        int d2 = (j >= 0) ? (int2[j--] - '0') : 0;
-        int diff = d1 - d2 - borrow;
-        if (diff < 0) {
-            diff += 10;
+    while (i >= 0 || j >= 0) {      // Subtracts integer parts while handling borrow.
+        int d1 = (i >= 0) ? int1[i--] - '0' : 0;  // Gets digit from first number, or 0 if out of range.
+        int d2 = (j >= 0) ? int2[j--] - '0' : 0;  // Gets digit from second number, or 0 if out of range.
+        d1 -= borrow;   // Applies borrow from previous subtraction.
+        if (d1 < d2) {  // If the first digit is smaller, borrows from the next place.
+            d1 += 10;
             borrow = 1;
         } else {
             borrow = 0;
         }
-        diff_int = std::to_string(diff) + diff_int; // Prepend the digit
+        result_int = char((d1 - d2) + '0') + result_int;    // Appends result digit to result_int.
     }
 
-    // 5. Combine the integer and decimal parts and remove leading zeros.
-    std::string result = remove_leading_zeros(diff_int);
-    if (!diff_dec.empty() && !all_zeros(diff_dec)) {
-        result += "." + diff_dec;
-    }
-    return result;
+    result_int = remove_leading_zeros(result_int);      // Removes leading zeros from integer part.
+    result_dec = remove_trailing_zeros(result_dec);     // Removes trailing zeros from fractional part.
+
+    if (!result_dec.empty())                    // If there is a fractional part,
+        return result_int + "." + result_dec;   // returns the integer and fractional parts combined.
+
+    return result_int + ".0";  // If no fractional part, returns just the integer part + ".0".
 }
 
-// (The other helper functions remain the same, but are included for completeness)
-int DoubleStr::string_max(int a, int b) const {
-    return (a > b) ? a : b;
+bool DoubleStr::is_greater_or_equal_unsigned(std::string n1, std::string n2) const {
+    std::string i1 = split_decimal_int(n1);     // Extracts integer part from n1.
+    std::string i2 = split_decimal_int(n2);     // Extracts integer part from n2.
+    i1 = remove_leading_zeros(i1);              // Removes leading zeros before the comparison.
+    i2 = remove_leading_zeros(i2);
+
+    if (i1.length() != i2.length()){        // If integer lengths differ, the longer one is larger.
+        return i1.length() > i2.length();
+    }
+    if (i1 != i2){      // If lengths equal but values differ, compare lexicographically.
+        return i1 > i2;
+    }
+    std::string f1 = split_decimal_frac(n1);    // Extracts fractional part from n1.
+    std::string f2 = split_decimal_frac(n2);    // Extracts fractional part from n2.
+    normalize_decimal_length(f1, f2);           // Pads with zeros to match fractional lengths.
+
+    return f1 >= f2;    // Lexicographically compares fractional parts.
 }
 
-bool DoubleStr::all_zeros(const std::string& str) const {
-    for (char c : str) {
-        if (c != '0') return false;
-    }
-    return true;
+void DoubleStr::normalize_decimal_length(std::string& dec1, std::string& dec2) const {  // Pads the shortest string with zeros at the end.
+    while (dec1.size() < dec2.size()) dec1 += '0'; 
+    while (dec2.size() < dec1.size()) dec2 += '0';
 }
 
 std::string DoubleStr::split_decimal_int(const std::string& num) const {
-    size_t decimalPos = num.find('.');
-    if (decimalPos == std::string::npos) {
-        return num;
-    } else {
-        return num.substr(0, decimalPos);
-    }
+    size_t dot = num.find('.'); // Finds position of the decimal point.
+    return num.substr(0, dot);  // Returns substring before the decimal point.
 }
 
 std::string DoubleStr::split_decimal_frac(const std::string& num) const {
-    size_t decimalPos = num.find('.');
-    if (decimalPos == std::string::npos) {
-        return "";
-    } else {
-        return num.substr(decimalPos + 1);
-    }
-}
-
-std::string DoubleStr::normalize_decimal_length(std::string dec1, std::string dec2, int& max_len) const {
-    max_len = string_max(dec1.length(), dec2.length());
-    while (dec1.length() < max_len) dec1 += '0';
-    while (dec2.length() < max_len) dec2 += '0';
-    return dec1;
+    size_t dot = num.find('.');     // Finds position of the decimal point.
+    return (dot == std::string::npos) ? "" : num.substr(dot + 1); // If no decimal point, returns an empty string; else, returns the fractional substring.
 }
 
 std::string DoubleStr::remove_leading_zeros(std::string num) const {
-    size_t first_digit = 0;
-    while (first_digit < num.length() - 1 && num[first_digit] == '0') {
-        first_digit++;
-    }
-    return num.substr(first_digit);
+    size_t i = 0;
+    while (i < num.size() - 1 && num[i] == '0') i++;    // Skips all leading zeroes.
+    return num.substr(i);   // Returns substring without leading zeroes.
 }
 
-bool DoubleStr::is_greater_or_equal_unsigned(std::string num1, std::string num2) const {
-    std::string int1 = split_decimal_int(num1);
-    std::string dec1 = split_decimal_frac(num1);
-    std::string int2 = split_decimal_int(num2);
-    std::string dec2 = split_decimal_frac(num2);
+std::string DoubleStr::remove_trailing_zeros(const std::string& num) const {
+    size_t end = num.size();
+    while (end > 0 && num[end - 1] == '0') end--;   // Trims trailing zeros from the end
+    return num.substr(0, end);  // Returns substring without trailing zeroes.
+}
 
-    if (int1.length() > int2.length()) return true;
-    if (int1.length() < int2.length()) return false;
-    if (int1 > int2) return true;
-    if (int1 < int2) return false;
-
-    int max_len = string_max(dec1.length(), dec2.length());
-    std::string norm_dec1 = normalize_decimal_length(dec1, dec2, max_len);
-    std::string norm_dec2 = normalize_decimal_length(dec2, dec1, max_len);
-
-    for (int i = 0; i < max_len; ++i) {
-        int d1 = (i < norm_dec1.length()) ? (norm_dec1[i] - '0') : 0;
-        int d2 = (i < norm_dec2.length()) ? (norm_dec2[i] - '0') : 0;
-        if (d1 > d2) return true;
-        if (d1 < d2) return false;
+bool DoubleStr::all_zeros(const std::string& str) const {
+    for (size_t i = 0; i < str.length(); i++) {
+        if (str[i] != '0') {    // If any character isn't '0', return false.
+            return false;
+        }
     }
-    return true;
+    return true;    // All characters are '0'.
 }
